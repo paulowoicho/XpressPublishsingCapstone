@@ -16,7 +16,8 @@ db.serialize(() => {
     db.run("drop table if exists Issue");
     db.run(`create table if not exists Issue 
     (id integer primary key not null, 
-        name text not null, issue_number integer not null, 
+        name text not null,
+        issue_number integer not null,
         publication_date text not null, 
         artist_id integer not null,
         series_id integer not null, 

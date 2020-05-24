@@ -8,9 +8,9 @@ const bodyParser = require('body-parser');
 const errorHandler = require('errorhandler');
 const morgan = require('morgan');
 
-app.use(cors);
+app.use(cors());
 app.use(bodyParser.json());
-app.use(errorHandler);
+app.use(errorHandler());
 app.use(morgan('dev'));
 
 app.use(express.static('public'));

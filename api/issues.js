@@ -4,7 +4,10 @@ const sqlite3 = require('sqlite3');
 const db = new sqlite3.Database(process.env.TEST_DATABASE || './database.sqlite');
 
 issuesRouter.get('/', (req, res, next) => {
-    db.all(`select * from Issue`, (error, issues) => {
+    db.all(`select * from Issue where Issue.series_id = $seriesId`, 
+    { 
+        $seriesId: req.params.seriesId
+    }, (error, issues) => {
         if(error){
             next(error);
         } else {
@@ -14,11 +17,11 @@ issuesRouter.get('/', (req, res, next) => {
 });
 
 issuesRouter.post('/', (req, res, next) => {
-    const name = req.body.issues.name;
-    const issueNumber = req.body.issues.issueNumber;
-    const publicationDate = req.body.issues.publicationDate;
-    const artistId = req.body.issues.artistId;
-    const seriesId = req.body.issues.seriesId;
+    const name = req.body.issue.name;
+    const issueNumber = req.body.issue.issueNumber;
+    const publicationDate = req.body.issue.publicationDate;
+    const artistId = req.body.issue.artistId;
+    const seriesId = req.params.seriesId;
 
     if(!name || !issueNumber || !publicationDate || !artistId){
         res.status(400).send();
@@ -28,11 +31,11 @@ issuesRouter.post('/', (req, res, next) => {
         if(error){
             res.status(400).send();
         }else{
-            db.run(`insert into Issue (id, name, publication_date, artist_id, series_id)
-            values ($id, $name, $publicationDate, $artistId, $seriesId)`, 
+            db.run(`insert into Issue (name, issue_number, publication_date, artist_id, series_id)
+            values ($name, $issueNumber, $publicationDate, $artistId, $seriesId)`, 
             {
-                $id: issueNumber,
                 $name: name,
+                $issueNumber: issueNumber,
                 $publicationDate: publicationDate,
                 $artistId: artistId,
                 $seriesId: seriesId
@@ -40,8 +43,8 @@ issuesRouter.post('/', (req, res, next) => {
                 if(error){
                     next(error);
                 }else{
-                    db.get(`select * from Series where id=$id`, {$id: seriesId}, (error, series) => {
-                        res.status(201).send({series: series})
+                    db.get(`select * from Issue where id=$id`, {$id: this.lastID}, (error, issue) => {
+                        res.status(201).json({issue: issue})
                     })
                 }
             })
@@ -55,7 +58,7 @@ issuesRouter.param("issueId", (req, res, next, issueId) => {
         if (error) {
             next(error);
         } else {
-            if (issues) {
+            if (issue) {
                 req.issue = issue;
                 next();
             } else {
@@ -67,11 +70,12 @@ issuesRouter.param("issueId", (req, res, next, issueId) => {
 
 
 issuesRouter.put('/:issueId', (req, res, next) => {
-    const name = req.body.issues.name;
-    const issueNumber = req.body.issues.issueNumber;
-    const publicationDate = req.body.issues.publicationDate;
-    const artistId = req.body.issues.artistId;
-    const seriesId = req.body.issues.seriesId;
+    const name = req.body.issue.name;
+    const issueNumber = req.body.issue.issueNumber;
+    const publicationDate = req.body.issue.publicationDate;
+    const artistId = req.body.issue.artistId;
+    //const seriesId = req.params.seriesId;
+    const issueId = req.params.issueId;
 
     if(!name || !issueNumber || !publicationDate || !artistId){
         res.status(400).send();
@@ -81,19 +85,19 @@ issuesRouter.put('/:issueId', (req, res, next) => {
         if(error){
             res.status(400).send();
         }else{
-            db.run(`update Issue set id=$id, name=$name, publication_date=$publicationDate, artist_id=$artistId, series_id=$seriesId)`, 
+            db.run(`update Issue set name=$name, issue_number = $issueNumber, publication_date=$publicationDate, artist_id=$artistId where id=$id`, 
             {
-                $id: issueNumber,
                 $name: name,
+                $issueNumber: issueNumber,
                 $publicationDate: publicationDate,
                 $artistId: artistId,
-                $seriesId: seriesId
+                $id: issueId,
             }, function(error){
                 if(error){
                     next(error);
                 }else{
-                    db.get(`select * from Series where id=$id`, {$id: seriesId}, (error, series) => {
-                        res.status(200).send({series: series})
+                    db.get(`select * from Issue where id=$id`, {$id: issueId}, (error, issue) => {
+                        res.status(200).json({issue: issue})
                     });
                 };
             });

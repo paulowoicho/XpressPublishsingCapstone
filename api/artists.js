@@ -67,7 +67,7 @@ artistRouter.put("/:artistId", (req, res, next) => {
     const name = req.body.artist.name;
     const dateOfBirth = req.body.artist.dateOfBirth;
     const biography = req.body.artist.biography;
-    const isCurrentlyEmployed = req.body.is_currently_employed;
+    const isCurrentlyEmployed = req.body.artist.isCurrentlyEmployed === 0 ? 0 : 1;
 
     if (!name || !dateOfBirth || !biography) {
         res.status(400).send();
@@ -99,7 +99,7 @@ artistRouter.put("/:artistId", (req, res, next) => {
 
 
 artistRouter.delete(`/:artistId`, (req, res, next) => {
-    db.run("update is_currently_employed = 0 where id=$id",
+    db.run("update Artist set is_currently_employed = 0 where id=$id",
         {
             $id: req.params.artistId
         }, (error) => {

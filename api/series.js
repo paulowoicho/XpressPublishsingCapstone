@@ -17,7 +17,7 @@ seriesRouter.get('/', (req, res, next) => {
 });
 
 seriesRouter.param("seriesId", (req, res, next, seriesId) => {
-    db.get("select * from Artist where id=$seriesId", { $seriesId: seriesId }, (error, series) => {
+    db.get("select * from Series where id=$seriesId", { $seriesId: seriesId }, (error, series) => {
         if (error) {
             next(error);
         } else {
@@ -32,7 +32,7 @@ seriesRouter.param("seriesId", (req, res, next, seriesId) => {
 });
 
 seriesRouter.get("/:seriesId", (req, res, next) => {
-    res.status(200).json({ artist: req.series });
+    res.status(200).json({ series: req.series });
 });
 
 seriesRouter.post("/", (req, res, next) => {
@@ -42,7 +42,7 @@ seriesRouter.post("/", (req, res, next) => {
     if (!name || !description) {
         res.status(400).send();
     } else {
-        db.run("insert into Series (name, decription) values ($name, $description)",
+        db.run("insert into Series (name, description) values ($name, $description)",
             {
                 $name: name,
                 $description: description
@@ -51,7 +51,7 @@ seriesRouter.post("/", (req, res, next) => {
                     {
                         $id: this.lastID
                     }, (error, series) => {
-                        res.status(201).json({ series: series });
+                        res.status(201).json({series: series});
                     });
             });
     }
@@ -65,14 +65,16 @@ seriesRouter.put("/:seriesId", (req, res, next) => {
     if (!name || !description) {
         res.status(400).send();
     } else {
-        db.run("update Series set name= $name, description = $description where id=$id", 
+        db.run("update Series set name= $name, description=$description where id=$id", 
         {
+            $name: name,
+            $description: description,
             $id : req.params.seriesId
         }, (error) => {
             if(error){
                 next(error)
             } else {
-                db.get("select * from series where id=$id", {$id : this.lastID}, (error, series) =>{
+                db.get("select * from Series where id=$id", {$id : req.params.seriesId}, (error, series) =>{
                     res.status(200).json({series: series})
                 })
             }
